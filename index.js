@@ -2,87 +2,59 @@ const core = require('@actions/core');
 const axios = require('axios');
 
 const run = async () => {
-    const serverUrl = 'https://api-final-8734-ccd74d9a-vw05i32o.onporter.run/test_group_run/';
-
-    // Inputs
-    const apiKey = core.getInput('apiKey', { required: true });
-    const params = core.getInput('params') || '{}';
-    const polling = parseInt(core.getInput('pollingInterval') || '10', 10) * 1000;
-    const timeout = parseInt(core.getInput('timeout') || '1800', 10) * 1000;
-
-    let parsedParams, initialResponse;
-
     try {
-        parsedParams = JSON.parse(params);
-    } catch (error) {
-        core.setFailed(`Invalid params: ${error.message}`);
-        return;
-    }
+        // Inputs
+        const serverUrlInput = 'https://api-final-8734-ccd74d9a-vw05i32o.onporter.run';
+        const triggerEndpoint = '/test_group_run/trigger_ci_run/';
 
-    core.info('Running Docket tests...');
-    try {
-        initialResponse = await axios.post(`${serverUrl}/trigger_ci_run`, parsedParams, {
-            headers: {
-                'X-API-KEY': apiKey,
-                'Content-Type': 'application/json',
-            },
-        });
-    } catch (error) {
-        core.setFailed(`Failed to run Docket tests: ${error.message}`);
-        return;
-    }
+        const apiKey = core.getInput('apiKey', { required: true });
+        const testParametersString = core.getInput('testParameters') || '{}';
+        const repositoryFullName = core.getInput('repositoryFullName', { required: true });
 
-    // Get the run ID and status
-    const runId = initialResponse.data.test_group_run.id;
-    let runStatus = initialResponse.data.test_group_run.status;
-
-    // If the run failed, set the output and return
-    if (!runId || runStatus !== 'running') {
-        core.setFailed(`Failed to run Docket tests: ${initialResponse.data.message}`);
-        core.setOutput('results', JSON.stringify(initialResponse.data.test_group_run || {}));
-        return;
-    }
-
-    const startTime = Date.now();
-
-    while (Date.now() - startTime < timeout) {
+        let parsedTestParameters;
         try {
-            const statusResponse = await axios.get(`${serverUrl}/test_group_run/ci/${runId}`, {
+            parsedTestParameters = JSON.parse(testParametersString);
+        } catch (error) {
+            core.setFailed(`Invalid testParameters JSON: ${error.message}`);
+            return;
+        }
+
+        const payloadToServer = {
+            ...parsedTestParameters,
+            github_repository: repositoryFullName
+        };
+
+        core.info('Triggering Docket tests on server (expecting webhook for results)...');
+
+        let initialResponse;
+        try {
+            initialResponse = await axios.post(`${serverUrlInput}${triggerEndpoint}`, payloadToServer, {
                 headers: {
                     'X-API-KEY': apiKey,
+                    'Content-Type': 'application/json',
                 },
+                timeout: 45000,
             });
-
-            runStatus = statusResponse.data.status;
-
-            if (runStatus === 'passed') {
-                core.info('Docket tests passed');
-                core.setOutput('results', JSON.stringify(statusResponse.data));
-                return;
-            } else if (runStatus === 'failed') {
-                core.setFailed(`Docket tests failed: ${statusResponse.data.message || 'No error message provided'}`);
-                core.setOutput('results', JSON.stringify(statusResponse.data));
-                return;
-            }
-
-            await new Promise(resolve => setTimeout(resolve, polling));
+            core.info(`Successfully triggered Docket tests. Server status: ${initialResponse.status}`);
         } catch (error) {
-            core.setFailed(`Error polling Docket tests: ${error.message}`);
-            if (initialResponse && initialResponse.data && initialResponse.data.test_group_run) {
-                core.setOutput('results', JSON.stringify(initialResponse.data.test_group_run));
-            } else {
-                core.setOutput('results', JSON.stringify({ error: error.message, runId }));
+            core.setFailed(`Failed to trigger Docket tests: ${error.message}`);
+            if (error.response) {
+                core.error(`Server responded with status: ${error.response.status}`);
+                core.error(`Server response data: ${JSON.stringify(error.response.data)}`);
             }
             return;
         }
-    }
 
-    core.setFailed('Docket tests timed out');
-    if (initialResponse && initialResponse.data && initialResponse.data.test_group_run) {
-        core.setOutput('results', JSON.stringify(initialResponse.data.test_group_run));
-    } else {
-        core.setOutput('results', JSON.stringify({ error: 'Timeout', runId }));
+        if (initialResponse.data?.test_group_run?.id) {
+            const runId = initialResponse.data.test_group_run.id;
+            core.setOutput('runId', runId);
+            core.info(`Docket test run ID: ${runId}. Waiting for webhook from server for completion status.`);
+        } else {
+            core.setFailed('Server did not return the expected runId in the response.');
+        }
+    } catch (error) {
+        core.setFailed(`Action failed with error: ${error.message}`);
     }
-}
+};
 
 run();

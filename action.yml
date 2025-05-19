@@ -10,27 +10,21 @@ inputs:
     description: 'Parameters to send to the Docket API'
     required: true
     default: '{}'
-  pollingInterval:
-    description: 'How often to poll the Docket API for results, in seconds'
-    required: false
-    default: '10'
-  timeout:
-    description: 'How long to wait for the Docket API to return results, in seconds'
-    required: false
-    default: '1800'
+  repoName:
+    description: 'Name of the repository'
+    required: true
 
 outputs:
-  results:
-    description: 'The results of the Docket API request'
-    required: true
+  jobId:
+    description: 'The job ID of the Docket API request'
 
 runs:
   using: 'node20'
   main: 'dist/index.js'
 
   env:
-    API_KEY: ${{ inputs.apiKey }}
+    DOCKET_API_KEY: ${{ inputs.apiKey }}
 
 branding:
-  icon: 'check-circle'
-  color: 'green'
+  icon: 'send'
+  color: 'blue'
