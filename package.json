@@ -1,0 +1,28 @@
+{
+  "name": "docket-action",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "ncc build index.js -o dist --source-map --license licenses.txt",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/signdocket/docket-action.git"
+  },
+  "keywords": [],
+  "author": "Docket Technologies Inc.",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/signdocket/docket-action/issues"
+  },
+  "homepage": "https://github.com/signdocket/docket-action#readme",
+  "description": "Github Action for running Docket tests",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "axios": "^1.9.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3"
+  }
+}

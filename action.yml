@@ -1,0 +1,36 @@
+name: 'Run Docket Tests'
+description: 'Makes a request to the Docket API, waits for and reports test results'
+author: 'Docket Technologies Inc.'
+
+inputs:
+  apiKey:
+    description: 'Docket API key'
+    required: true
+  params:
+    description: 'Parameters to send to the Docket API'
+    required: true
+    default: '{}'
+  pollingInterval:
+    description: 'How often to poll the Docket API for results, in seconds'
+    required: false
+    default: '10'
+  timeout:
+    description: 'How long to wait for the Docket API to return results, in seconds'
+    required: false
+    default: '1800'
+
+outputs:
+  results:
+    description: 'The results of the Docket API request'
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+  env:
+    API_KEY: ${{ inputs.apiKey }}
+
+branding:
+  icon: 'check-circle'
+  color: 'green'
