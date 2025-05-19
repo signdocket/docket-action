@@ -47,21 +47,21 @@ const run = async () => {
 
     while (Date.now() - startTime < timeout) {
         try {
-            const statusResponse = await axios.get(`${serverUrl}/test_group_run/${runId}`, {
+            const statusResponse = await axios.get(`${serverUrl}/test_group_run/ci/${runId}`, {
                 headers: {
                     'X-API-KEY': apiKey,
                 },
             });
 
-            runStatus = statusResponse.data.test_group_run.status;
+            runStatus = statusResponse.data.status;
 
             if (runStatus === 'passed') {
                 core.info('Docket tests passed');
-                core.setOutput('results', JSON.stringify(statusResponse.data.test_group_run));
+                core.setOutput('results', JSON.stringify(statusResponse.data));
                 return;
             } else if (runStatus === 'failed') {
                 core.setFailed(`Docket tests failed: ${statusResponse.data.message || 'No error message provided'}`);
-                core.setOutput('results', JSON.stringify(statusResponse.data.test_group_run));
+                core.setOutput('results', JSON.stringify(statusResponse.data));
                 return;
             }
 
