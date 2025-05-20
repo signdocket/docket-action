@@ -10,7 +10,7 @@ inputs:
     description: 'Parameters to send to the Docket API'
     required: true
     default: '{}'
-  repoName:
+  repositoryFullName:
     description: 'Name of the repository'
     required: true
 
