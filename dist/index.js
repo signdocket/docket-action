@@ -35786,7 +35786,7 @@ const axios = __nccwpck_require__(7269);
 const run = async () => {
     try {
         // Inputs
-        const serverUrlInput = 'https://api-final-8734-ccd74d9a-vw05i32o.onporter.run';
+        const serverUrlInput = 'https://api.docketqa.com';
         const triggerEndpoint = '/test_group_run/trigger_ci_run/';
 
         const apiKey = core.getInput('apiKey', { required: true });
@@ -35803,7 +35803,12 @@ const run = async () => {
 
         const payloadToServer = {
             ...parsedTestParameters,
-            github_repository: repositoryFullName
+            github_context: {
+                repository: repositoryFullName,
+                commit_sha: process.env.GITHUB_SHA,
+                run_id: process.env.GITHUB_RUN_ID,
+                ref: process.env.GITHUB_REF,
+            }
         };
 
         core.info('Triggering Docket tests on server (expecting webhook for results)...');
