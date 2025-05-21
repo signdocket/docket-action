@@ -22,9 +22,6 @@ runs:
   using: 'node20'
   main: 'dist/index.js'
 
-  env:
-    DOCKET_API_KEY: ${{ inputs.apiKey }}
-
 branding:
   icon: 'send'
   color: 'blue'
