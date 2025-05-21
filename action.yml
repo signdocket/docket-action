@@ -6,8 +6,8 @@ inputs:
   apiKey:
     description: 'Docket API key'
     required: true
-  params:
-    description: 'Parameters to send to the Docket API'
+  testParameters:
+    description: 'JSON string containing parameters to send to the Docket API. Must be valid JSON format.'
     required: true
     default: '{}'
   repositoryFullName:
@@ -15,8 +15,8 @@ inputs:
     required: true
 
 outputs:
-  jobId:
-    description: 'The job ID of the Docket API request'
+  runId:
+    description: 'The run ID of the Docket API request'
 
 runs:
   using: 'node20'

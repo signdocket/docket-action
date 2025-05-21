@@ -35790,15 +35790,14 @@ const run = async () => {
         const triggerEndpoint = '/test_group_run/trigger_ci_run/';
 
         const apiKey = core.getInput('apiKey', { required: true });
-        const testParametersString = core.getInput('testParameters') || '{}';
+        const testParametersString = core.getInput('testParameters', { required: true });
         const repositoryFullName = core.getInput('repositoryFullName', { required: true });
 
         let parsedTestParameters;
         try {
             parsedTestParameters = JSON.parse(testParametersString);
         } catch (error) {
-            core.setFailed(`Invalid testParameters JSON: ${error.message}`);
-            return;
+            throw new Error(`Invalid testParameters JSON: ${error.message}`);
         }
 
         const payloadToServer = {
@@ -35824,23 +35823,21 @@ const run = async () => {
             });
             core.info(`Successfully triggered Docket tests. Server status: ${initialResponse.status}`);
         } catch (error) {
-            core.setFailed(`Failed to trigger Docket tests: ${error.message}`);
-            if (error.response) {
-                core.error(`Server responded with status: ${error.response.status}`);
-                core.error(`Server response data: ${JSON.stringify(error.response.data)}`);
-            }
-            return;
+            const errorMessage = error.response 
+                ? `Server responded with status: ${error.response.status}. Response data: ${JSON.stringify(error.response.data)}`
+                : error.message;
+            throw new Error(`Failed to trigger Docket tests: ${errorMessage}`);
         }
 
-        if (initialResponse.data?.test_group_run?.id) {
-            const runId = initialResponse.data.test_group_run.id;
-            core.setOutput('runId', runId);
-            core.info(`Docket test run ID: ${runId}. Waiting for webhook from server for completion status.`);
-        } else {
-            core.setFailed('Server did not return the expected runId in the response.');
+        if (!initialResponse.data?.test_group_run?.id) {
+            throw new Error('Server did not return the expected runId in the response.');
         }
+
+        const runId = initialResponse.data.test_group_run.id;
+        core.setOutput('runId', runId);
+        core.info(`Docket test run ID: ${runId}. Waiting for webhook from server for completion status.`);
     } catch (error) {
-        core.setFailed(`Action failed with error: ${error.message}`);
+        core.setFailed(error.message);
     }
 };
 
