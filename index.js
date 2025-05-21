@@ -5,7 +5,7 @@ const run = async () => {
     try {
         // Inputs
         const serverUrlInput = 'https://api.docketqa.com';
-        const triggerEndpoint = '/test_group_run/trigger_ci_run/';
+        const triggerEndpoint = '/test_group_run/trigger_ci_run';
 
         const apiKey = core.getInput('apiKey', { required: true });
         const testParametersString = core.getInput('testParameters', { required: true });
