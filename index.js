@@ -1,4 +1,5 @@
 const core = require('@actions/core');
+const { context } = require('@actions/github');
 const axios = require('axios');
 
 const run = async () => {
@@ -36,14 +37,14 @@ const run = async () => {
             ...parsedTestParameters,
             github_context: {
                 repository: repositoryFullName,
-                commit_sha: process.env.GITHUB_SHA,
-                run_id: process.env.GITHUB_RUN_ID,
-                ref: process.env.GITHUB_REF,
+                commit_sha: process.env.GITHUB_SHA || context.sha,
+                run_id: process.env.GITHUB_RUN_ID || context.runId,
+                ref: process.env.GITHUB_REF || context.ref,
             }
         };
 
         core.info('Triggering Docket tests on server (expecting webhook for results)...');
-
+        const timestamp = new Date().toISOString();
         let initialResponse;
         try {
             initialResponse = await axios.post(`${serverUrlInput}${triggerEndpoint}`, payloadToServer, {
@@ -89,7 +90,8 @@ const run = async () => {
 
         const runId = initialResponse.data.test_group_run.id;
         core.setOutput('runId', runId);
-        core.info(`Docket test run ID: ${runId}. Waiting for webhook from server for completion status.`);
+        
+        core.info(`Docket test run ID: ${runId} triggered at ${timestamp}. Waiting for webhook from server for completion status.`);
     } catch (error) {
         core.setFailed(error.message);
     }
