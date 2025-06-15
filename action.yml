@@ -12,6 +12,7 @@ inputs:
     description: 'JSON string containing parameters to send to the Docket API. Must be valid JSON format.'
     required: true
     default: '{}'
+
   repositoryFullName:
     description: 'Name of the repository'
     required: true
