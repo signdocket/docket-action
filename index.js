@@ -36,9 +36,9 @@ const run = async () => {
         const payloadToServer = {
             ...parsedTestParameters,
             github_context: {
-                repository: repositoryFullName,
+                repository: repositoryFullName || context.repo.owner + '/' + context.repo.repo,
                 commit_sha: process.env.GITHUB_SHA || context.sha,
-                run_id: process.env.GITHUB_RUN_ID || context.runId,
+                run_id: process.env.GITHUB_RUN_ID,
                 ref: process.env.GITHUB_REF || context.ref,
             }
         };
