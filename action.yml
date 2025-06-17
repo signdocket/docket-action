@@ -4,12 +4,15 @@ author: 'Docket Technologies Inc.'
 
 inputs:
   apiKey:
-    description: 'Docket API key'
+    description: 'Docket API key for authentication'
     required: true
+    sensitive: true
+
   testParameters:
     description: 'JSON string containing parameters to send to the Docket API. Must be valid JSON format.'
     required: true
     default: '{}'
+
   repositoryFullName:
     description: 'Name of the repository'
     required: true
