@@ -29,14 +29,21 @@ const run = async () => {
         }
 
         // Validate required GitHub context
-        if (!process.env.GITHUB_SHA || !process.env.GITHUB_RUN_ID || !process.env.GITHUB_REF) {
-            throw new Error('Missing required GitHub context variables');
+        if (!process.env.GITHUB_SHA && !context.sha) {
+            throw new Error('Missing commit SHA from both env and context');
         }
+        if (!process.env.GITHUB_REF && !context.ref) {
+            throw new Error('Missing ref from both env and context');
+        }
+        if (!process.env.GITHUB_RUN_ID) {
+            throw new Error('Missing GITHUB_RUN_ID from env');
+        }
+
 
         const payloadToServer = {
             ...parsedTestParameters,
             github_context: {
-                repository: repositoryFullName || context.repo.owner + '/' + context.repo.repo,
+                repository: repositoryFullName || `${context?.repo?.owner}/${context?.repo?.repo}`,
                 commit_sha: process.env.GITHUB_SHA || context.sha,
                 run_id: process.env.GITHUB_RUN_ID,
                 ref: process.env.GITHUB_REF || context.ref,
@@ -90,7 +97,7 @@ const run = async () => {
 
         const runId = initialResponse.data.test_group_run.id;
         core.setOutput('runId', runId);
-        
+
         core.info(`Docket test run ID: ${runId} triggered at ${timestamp}. Waiting for webhook from server for completion status.`);
     } catch (error) {
         core.setFailed(error.message);
